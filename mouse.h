@@ -7,9 +7,9 @@ namespace qw
 {
 	struct Mouse
 	{
-		static Event OnMousePressed;
-		static Event OnMouseReleased;
-		static Event OnMouseDown;
+		static Event OnMouseLeftButtonPressed;
+		static Event OnMouseLeftButtonReleased;
+		static Event OnMouseLeftButtonDown;
 
 		static sf::Vector2f const& GetMousePosition()
 		{

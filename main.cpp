@@ -1,15 +1,19 @@
-#include "toglable.h"
+#include "spawn_button.h"
 #include "mouse.h"
+#define INIT(Name) qw :: Name :: Init(w)
 
+#define QW_INIT \
+	INIT(SpawnButton); INIT(Toglable); INIT(Mouse);
 
 
 int main()
 {
 	sf::RenderWindow w({ 800,600 }, "T_T");
-	qw::Mouse::Init(w);
-	qw::Toglable::Init(w);
-	qw::Toglable s;
-	s.SetScale(100.f, 100.f);
+	QW_INIT
+
+	qw::SpawnButton button;
+	button.SetPosition(400.f, 400.f);
+	button.SetScale(100.f, 50.f);
 	bool is_mouse_down{ false };
 
 	while (w.isOpen())
@@ -18,13 +22,23 @@ int main()
 		while (w.pollEvent(e))
 		{
 			if (e.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) w.close();
-			else if (e.type == sf::Event::MouseButtonPressed) { qw::Mouse::OnMousePressed(); is_mouse_down = true; }
-			else if (e.type == sf::Event::MouseButtonReleased) { qw::Mouse::OnMouseReleased(); is_mouse_down = false; }
+			else if (e.type == sf::Event::MouseButtonPressed)
+			{
+				if (e.mouseButton.button == sf::Mouse::Button::Left) qw::Mouse::OnMouseLeftButtonPressed();
+				is_mouse_down = true;
+			}
+			else if (e.type == sf::Event::MouseButtonReleased)
+			{
+				if (e.mouseButton.button == sf::Mouse::Button::Left) qw::Mouse::OnMouseLeftButtonReleased();
+				is_mouse_down = false;
+			}
 		}
-		if (is_mouse_down) qw::Mouse::OnMouseDown();
+		if (is_mouse_down) qw::Mouse::OnMouseLeftButtonDown();
+		
 
 		w.clear();
-		s.Draw();
+		qw::Toglable::DrawSpawned();
+		button.Draw();
 		w.display();
 	}
 }

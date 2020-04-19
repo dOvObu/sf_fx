@@ -1,7 +1,7 @@
 #include "mouse.h"
 
 
-qw::Event qw::Mouse::OnMousePressed;
-qw::Event qw::Mouse::OnMouseReleased;
-qw::Event qw::Mouse::OnMouseDown;
+qw::Event qw::Mouse::OnMouseLeftButtonPressed;
+qw::Event qw::Mouse::OnMouseLeftButtonReleased;
+qw::Event qw::Mouse::OnMouseLeftButtonDown;
 sf::RenderWindow* qw::Mouse::pw{ nullptr };

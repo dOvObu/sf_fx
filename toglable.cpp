@@ -4,6 +4,9 @@
 
 
 sf::RenderWindow* qw::Toglable::pw{ nullptr };
+std::vector<std::shared_ptr<qw::Toglable>> qw::Toglable::_spawned;
+bool qw::Toglable::_select_some{ false };
+std::list<qw::Toglable::Action> qw::Toglable::_actions;
 
 
 qw::Toglable::Toglable()
@@ -13,20 +16,15 @@ qw::Toglable::Toglable()
 	float& rotation_drag_start = _rotation_drag_start;
 	sf::Vector2f& mouse_drag_start = _mouse_drag_start;
 	sf::Vector2f& pos_drag_start = _position_drag_start
-	          , & scale_drag_start = _scale_drag_start;
+		, & scale_drag_start = _scale_drag_start;
 
-
-	Mouse::OnMousePressed[this] = [&ref, &pos_drag_start, &scale_drag_start, &rotation_drag_start, &mouse_drag_start]()
+	Mouse::OnMouseLeftButtonPressed[this] = [&ref, &pos_drag_start, &scale_drag_start, &rotation_drag_start, &mouse_drag_start]()
 	{
 		auto mp = Mouse::GetMousePosition();
 		if (ref.Contains(mp))
 		{
 			mouse_drag_start = Mouse::GetMousePosition();
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::G))
-			{
-				pos_drag_start = ref.GetPosition();
-			}
-			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 			{
 				scale_drag_start = ref.GetScale();
 			}
@@ -36,29 +34,32 @@ qw::Toglable::Toglable()
 				mp -= ref.GetPosition();
 				rotation_drag_start = ref.GetRotation() - atan2f(mp.y, mp.x);
 			}
+			else
+			{
+				pos_drag_start = ref.GetPosition();
+			}
 			ref.Select();
 		}
 	};
 
-	Mouse::OnMouseReleased[this] = [&selected, &pos_drag_start, &scale_drag_start, &rotation_drag_start, &mouse_drag_start]()
+	Mouse::OnMouseLeftButtonReleased[this] = [&ref, &selected, &pos_drag_start, &scale_drag_start, &rotation_drag_start, &mouse_drag_start]()
 	{
 		selected = false;
 		pos_drag_start = scale_drag_start = mouse_drag_start = { 0.f,0.f };
 		rotation_drag_start = 0.f;
+		ref.Select(false);
 	};
 
-	Mouse::OnMouseDown[this] = [&ref, &selected, &pos_drag_start, &scale_drag_start, &rotation_drag_start, &mouse_drag_start]()
+	Mouse::OnMouseLeftButtonDown[this] = [&ref, &selected, &pos_drag_start, &scale_drag_start, &rotation_drag_start, &mouse_drag_start]()
 	{
+		if (_select_some)
+		{
+			ref.KeepOneSelected();
+			_select_some = false;
+		}
 		if (selected)
 		{
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::G))
-			{
-				auto mp = Mouse::GetMousePosition();
-				mp -= mouse_drag_start;
-				const auto& pos = pos_drag_start + mp;
-				ref.SetPosition(pos.x, pos.y);
-			}
-			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 			{
 				auto mp = Mouse::GetMousePosition();
 				mp -= mouse_drag_start;
@@ -71,16 +72,30 @@ qw::Toglable::Toglable()
 				mp = mp - ref.GetPosition();
 				ref.SetRotation(rotation_drag_start + atan2f(mp.y, mp.x));
 			}
+			else
+			{
+				auto mp = Mouse::GetMousePosition();
+				mp -= mouse_drag_start;
+				const auto& pos = pos_drag_start + mp;
+				ref.SetPosition(pos.x, pos.y);
+			}
 		}
 	};
+
+	std::cout << "new Toglable\n";
 }
 
 
 qw::Toglable::~Toglable()
 {
-	Mouse::OnMousePressed -= this;
-	Mouse::OnMouseReleased -= this;
-	Mouse::OnMouseDown -= this;
+	Mouse::OnMouseLeftButtonPressed -= this;
+	Mouse::OnMouseLeftButtonReleased -= this;
+	Mouse::OnMouseLeftButtonDown -= this;
+}
+
+
+void qw::Toglable::Subscribe()
+{
 }
 
 
@@ -112,10 +127,10 @@ sf::Vector2f qw::Toglable::GetScale() { return { _scaleX, _scaleY }; }
 float qw::Toglable::GetRotation() { return _angle; }
 
 
-void qw::Toglable::Select()
+void qw::Toglable::Select(bool selected)
 {
-	_selected = true;
-	for (auto& p : _v) p.color = sf::Color(255, 224, 155);
+	_select_some = _selected = selected;
+	for (auto& p : _v) p.color = selected ? sf::Color(255, 224, 155) : sf::Color::White;
 }
 
 
@@ -125,9 +140,52 @@ bool qw::Toglable::Contains(sf::Vector2f const& p)
 }
 
 
+void qw::Toglable::SelectToDrag()
+{
+	Select();
+}
+
+
+void qw::Toglable::KeepOneSelected()
+{
+	bool first{ true };
+	for (auto it = _spawned.rbegin(); it != _spawned.rend(); ++it)
+	{
+		if ((*it)->_selected)
+		{
+			if (first)
+			{
+				first = false;
+			}
+			else
+			{
+				(*it)->Select(false);
+			}
+		}
+	}
+}
+
+
 void qw::Toglable::Init(sf::RenderWindow& rw)
 {
 	pw = &rw;
+}
+
+
+void qw::Toglable::DrawSpawned()
+{
+	for (auto& it : _spawned)
+	{
+		it->Draw();
+	}
+}
+
+qw::Toglable* qw::Toglable::Spawn(sf::Vector2f p)
+{
+	_spawned.push_back(std::shared_ptr<Toglable>{ new Toglable() });
+	auto last_spawned = _spawned.back().get();
+	last_spawned->SetPosition(p.x, p.y);
+	return last_spawned;
 }
 
  //===O===\\

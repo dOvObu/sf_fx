@@ -1,6 +1,8 @@
 #ifndef INCLUDED_TOGLABLE_H
 #define INCLUDED_TOGLABLE_H
 #include "mouse.h"
+#include <memory>
+#include <list>
 
 
 namespace qw
@@ -9,6 +11,7 @@ namespace qw
 	{
 		Toglable();
 		~Toglable();
+		void Subscribe();
 
 		void SetActive(bool active);
 		void Draw();
@@ -19,11 +22,14 @@ namespace qw
 		sf::Vector2f GetScale();
 		float GetRotation();
 
-		void Select();
+		void Select(bool selected = true);
 		bool Contains(sf::Vector2f const& p);
+		void SelectToDrag();
 
 		static void Init(sf::RenderWindow& rw);
-
+		static void DrawSpawned();
+		static Toglable* Spawn(sf::Vector2f p);
+		static void KeepOneSelected();
 	private:
 		sf::Vertex _v[4]{ sf::Vector2f{-1.f,-1.f}, sf::Vector2f{1.f,-1.f}, sf::Vector2f{1.f,1.f}, sf::Vector2f{-1.f,1.f} };
 		sf::Vector2f _mouse_drag_start{ 0.f, 0.f };
@@ -39,6 +45,10 @@ namespace qw
 		void Transform();
 
 		static sf::RenderWindow* pw;
+		static std::vector<std::shared_ptr<Toglable>> _spawned;
+		static bool _select_some;
+		enum class Action { SetPosition, SetScale, SetAngle };
+		static std::list<Action> _actions;
 	};
 }
 
