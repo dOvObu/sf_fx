@@ -166,6 +166,20 @@ void qw::Toglable::KeepOneSelected()
 }
 
 
+void qw::Toglable::PushAction(qw::Toglable::Action action)
+{
+	_actions.push_back(action);
+}
+
+
+qw::Toglable::Action qw::Toglable::PopAction()
+{
+	auto action = _actions.back();
+	_actions.pop_back();
+	return action;
+}
+
+
 void qw::Toglable::Init(sf::RenderWindow& rw)
 {
 	pw = &rw;

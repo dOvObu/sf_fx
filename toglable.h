@@ -30,6 +30,10 @@ namespace qw
 		static void DrawSpawned();
 		static Toglable* Spawn(sf::Vector2f p);
 		static void KeepOneSelected();
+
+		enum class Action { Spawned, SetPosition, SetScale, SetAngle };
+		static void PushAction(Action a);
+		static Action PopAction();
 	private:
 		sf::Vertex _v[4]{ sf::Vector2f{-1.f,-1.f}, sf::Vector2f{1.f,-1.f}, sf::Vector2f{1.f,1.f}, sf::Vector2f{-1.f,1.f} };
 		sf::Vector2f _mouse_drag_start{ 0.f, 0.f };
@@ -47,7 +51,6 @@ namespace qw
 		static sf::RenderWindow* pw;
 		static std::vector<std::shared_ptr<Toglable>> _spawned;
 		static bool _select_some;
-		enum class Action { SetPosition, SetScale, SetAngle };
 		static std::list<Action> _actions;
 	};
 }
