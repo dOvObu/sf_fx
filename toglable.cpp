@@ -23,20 +23,24 @@ qw::Toglable::Toglable()
 		auto mp = Mouse::GetMousePosition();
 		if (ref.Contains(mp))
 		{
-			mouse_drag_start = Mouse::GetMousePosition();
+			mouse_drag_start = mp;
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 			{
 				scale_drag_start = ref.GetScale();
+				rotation_drag_start = -ref.GetRotation();
+				ref.PushAction(Action::SET_SCALE);
 			}
 			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::R))
 			{
 				auto mp = Mouse::GetMousePosition();
 				mp -= ref.GetPosition();
 				rotation_drag_start = ref.GetRotation() - atan2f(mp.y, mp.x);
+				ref.PushAction(Action::SET_ANGLE);
 			}
 			else
 			{
 				pos_drag_start = ref.GetPosition();
+				ref.PushAction(Action::SET_POSITION);
 			}
 			ref.Select();
 		}
@@ -50,7 +54,8 @@ qw::Toglable::Toglable()
 		ref.Select(false);
 	};
 
-	Mouse::OnMouseLeftButtonDown[this] = [&ref, &selected, &pos_drag_start, &scale_drag_start, &rotation_drag_start, &mouse_drag_start]()
+	auto& actions = _actions;
+	Mouse::OnMouseLeftButtonDown[this] = [&ref, &selected, &actions, &pos_drag_start, &scale_drag_start, &rotation_drag_start, &mouse_drag_start]()
 	{
 		if (_select_some)
 		{
@@ -59,20 +64,22 @@ qw::Toglable::Toglable()
 		}
 		if (selected)
 		{
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+			auto& last_action = actions.back();
+
+			if (last_action == Action::SET_SCALE && sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 			{
-				auto mp = Mouse::GetMousePosition();
-				mp -= mouse_drag_start;
-				auto scl = rotate(scale_drag_start + mp, ref.GetRotation());
+				auto mp = Mouse::GetMousePosition() - mouse_drag_start;
+				auto scl = scale_drag_start + rotate(mp, rotation_drag_start);
+				
 				ref.SetScale(scl.x, scl.y);
 			}
-			else if (sf::Keyboard::isKeyPressed(sf::Keyboard::R))
+			else if (last_action == Action::SET_ANGLE && sf::Keyboard::isKeyPressed(sf::Keyboard::R))
 			{
 				auto mp = Mouse::GetMousePosition();
 				mp = mp - ref.GetPosition();
 				ref.SetRotation(rotation_drag_start + atan2f(mp.y, mp.x));
 			}
-			else
+			else if (last_action == Action::SET_POSITION)
 			{
 				auto mp = Mouse::GetMousePosition();
 				mp -= mouse_drag_start;
@@ -109,10 +116,14 @@ void qw::Toglable::Draw()
 {
 	if (_active)
 	{
-		_v[0].position = { -1.f,-1.f }, _v[1].position = { 1.f,-1.f };
-		_v[2].position = { 1.f, 1.f }, _v[3].position = { -1.f, 1.f };
+		sf::Texture texture;
+		sf::RenderStates states;
+		states.texture = &texture;
+		_v[0].position = { -1.f,-1.f }, _v[1].position = {  1.f,-1.f };
+		_v[2].position = {  1.f, 1.f }, _v[3].position = { -1.f, 1.f };
+		
 		Transform();
-		pw->draw(_v, 4, sf::Quads);
+		pw->draw(_v, 4, sf::Quads, states);
 	}
 }
 
@@ -143,6 +154,7 @@ bool qw::Toglable::Contains(sf::Vector2f const& p)
 void qw::Toglable::SelectToDrag()
 {
 	Select();
+	PushAction(Action::SET_POSITION);
 }
 
 
@@ -169,6 +181,10 @@ void qw::Toglable::KeepOneSelected()
 void qw::Toglable::PushAction(qw::Toglable::Action action)
 {
 	_actions.push_back(action);
+	if (_actions.size() > 10)
+	{
+		_actions.pop_front();
+	}
 }
 
 
@@ -196,10 +212,17 @@ void qw::Toglable::DrawSpawned()
 
 qw::Toglable* qw::Toglable::Spawn(sf::Vector2f p)
 {
-	_spawned.push_back(std::shared_ptr<Toglable>{ new Toglable() });
-	auto last_spawned = _spawned.back().get();
+	qw::Toglable* last_spawned{ nullptr };
+	_spawned.push_back(std::shared_ptr<Toglable>{ last_spawned = new Toglable() });
 	last_spawned->SetPosition(p.x, p.y);
+	PushAction(Action::SPAWNED);
 	return last_spawned;
+}
+
+qw::Toglable* qw::Toglable::Spawn(Toglable* toglable)
+{
+	_spawned.push_back(std::shared_ptr<Toglable>{ toglable });
+	return toglable;
 }
 
  //===O===\\

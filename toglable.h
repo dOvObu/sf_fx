@@ -29,9 +29,10 @@ namespace qw
 		static void Init(sf::RenderWindow& rw);
 		static void DrawSpawned();
 		static Toglable* Spawn(sf::Vector2f p);
+		static Toglable* Spawn(Toglable* toglable);
 		static void KeepOneSelected();
 
-		enum class Action { Spawned, SetPosition, SetScale, SetAngle };
+		enum class Action { SPAWNED, SET_POSITION, SET_SCALE, SET_ANGLE };
 		static void PushAction(Action a);
 		static Action PopAction();
 	private:
