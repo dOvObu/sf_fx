@@ -1,5 +1,7 @@
 #include "qw.h"
 #include <SFML/Graphics.hpp>
+#include "ui/ui_field.h"
+#include "ui/ui_label.h"
 
 namespace qw
 {
@@ -22,6 +24,15 @@ namespace qw
 		//qw::SpawnButton button("example");
 		//button.SetPosition(400.f, 400.f);
 		//button.SetScale(100.f, 50.f);
+		UiField item({ 200,200 }, { 300,200 }, { 100, 150, 200 },
+			{
+				new UiField({}, { 250,150 }, { 20, 70, 120 },
+					{
+						new UiLabel(L"Тестовое окно", "JB_Mono"),
+					}),
+			},
+			true);
+		Toglable::Spawn("example", { 300,300 })->SetScale(150,150);
 
 		while (pw->isOpen())
 		{
@@ -30,7 +41,6 @@ namespace qw
 
 			pw->clear();
 			qw::Toglable::DrawSpawned();
-			//button.Draw();
 			pw->display();
 		}
 	}

@@ -50,6 +50,7 @@ template<typename T, size_t N> inline void print(T(&A)[N]) { std::cout << '['; b
 //~glsl math
 inline bool is_odd(const int& c) { return c & 1; }
 inline int fract(const int v, const int min, const int max) { return (v + min) % max; }
+template<typename T> constexpr const T& clamp(const T& v, const T& lo, const T& hi) { return (v < lo) ? lo : (hi < v) ? hi : v; }
 
 // geometry
 enum class Orientation { COLINEAR, CLOCKWISE, COUNTER_CLOCKWISE };

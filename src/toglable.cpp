@@ -3,9 +3,9 @@
 #include "sfml_extentions.h"
 #include "textures_provider.h"
 
-
 sf::RenderWindow* qw::Toglable::pw{ nullptr };
 std::vector<std::shared_ptr<qw::Toglable>> qw::Toglable::_spawned;
+std::vector<std::shared_ptr<qw::Toglable>> qw::Toglable::_package;
 bool qw::Toglable::_select_some{ false };
 std::list<qw::Toglable::Action> qw::Toglable::_actions;
 
@@ -16,7 +16,9 @@ qw::Toglable::Toglable()
 }
 
 
-qw::Toglable::Toglable(char const* name)
+qw::Toglable::Toglable(char const* name, float x = 0.f, float y = 0.f)
+	:_positionX(x)
+	,_positionY(y)
 {
 	_states.texture = &TexturesProvider::GetTexture(name);
 	auto size = _states.texture->getSize();
@@ -24,6 +26,14 @@ qw::Toglable::Toglable(char const* name)
 	_v[1].texCoords = sf::Vector2f( size.x,0.f );
 	_v[2].texCoords = sf::Vector2f( size.x,size.y );
 	_v[3].texCoords = sf::Vector2f( 0.f,size.y );
+	_Init();
+}
+
+
+qw::Toglable::Toglable(float x, float y)
+	:_positionX(x)
+	,_positionY(y)
+{
 	_Init();
 }
 
@@ -51,6 +61,8 @@ void qw::Toglable::Draw()
 		
 		_Transform();
 		pw->draw(_v, 4, sf::Quads, _states);
+
+		OnDraw();
 	}
 }
 
@@ -59,7 +71,9 @@ void qw::Toglable::SetPosition(float x, float y) { _positionX = x, _positionY = 
 void qw::Toglable::SetScale(float x, float y) { _scaleX = x, _scaleY = y; }
 void qw::Toglable::SetOrigin(float x, float y) { _originX = x, _originY = y; }
 void qw::Toglable::SetRotation(float angle) { _angle = angle; }
-void qw::Toglable::SetColor(sf::Color color) { _color = color; }
+void qw::Toglable::SetColor(sf::Color color) { _color = color; for (auto& v : _v) v.color = color; }
+void qw::Toglable::SetDrawableAsSpawned(bool drawable) { _drawable_as_spawned = drawable; }
+bool qw::Toglable::IsDrawableAsSpawned() { return _drawable_as_spawned; }
 
 sf::Vector2f qw::Toglable::GetPosition() { return { _positionX, _positionY }; }
 sf::Vector2f qw::Toglable::GetScale() { return { _scaleX, _scaleY }; }
@@ -70,7 +84,11 @@ float qw::Toglable::GetRotation() { return _angle; }
 void qw::Toglable::Select(bool selected)
 {
 	_select_some = _selected = selected;
-	for (auto& p : _v) p.color = selected ? sf::Color(255, 224, 155) : sf::Color::White;
+	
+	for (auto& v : _v)
+	{
+		v.color = !selected ? _color : sf::Color::Yellow;
+	}
 }
 
 
@@ -135,7 +153,10 @@ void qw::Toglable::DrawSpawned()
 {
 	for (auto& it : _spawned)
 	{
-		it->Draw();
+		if (it->_drawable_as_spawned)
+		{
+			it->Draw();
+		}
 	}
 }
 
@@ -164,8 +185,24 @@ qw::Toglable* qw::Toglable::Spawn(char const* name, sf::Vector2f p)
 	return last_spawned;
 }
 
+qw::Toglable* qw::Toglable::PushToPackage(sf::Vector2f p)
+{
+	qw::Toglable* last_spawned{ nullptr };
+	_package.push_back(std::shared_ptr<Toglable>{ last_spawned = new Toglable() });
+	last_spawned->SetPosition(p.x, p.y);
+	PushAction(Action::SPAWNED);
+	return last_spawned;
+}
+
+void qw::Toglable::PackPackage()
+{
+	_spawned.insert(std::end(_spawned), std::rbegin(_package), std::rend(_package));
+	_package.clear();
+}
+
 void qw::Toglable::Delete(qw::Toglable* toglable)
 {
+	toglable->OnDelete();
 	_spawned.erase(std::remove_if(std::begin(_spawned), std::end(_spawned), [&toglable](std::shared_ptr<Toglable>& sp) { return sp.get() == toglable; }));
 }
 

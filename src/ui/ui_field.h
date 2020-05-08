@@ -8,16 +8,17 @@ namespace qw
 {
 	struct UiField : public IUiItem
 	{
-		UiField(sf::Vector2f position, sf::Vector2f size, sf::Color backgound_color);
+		UiField(sf::Vector2f position = {0.f,0.f}, sf::Vector2f size = { 100.f,100.f }, sf::Color backgound_color = sf::Color::White, std::vector<IUiItem*> const& childs = {}, bool draw_as_spawned = false);
+		~UiField();
 		void SetPosition(sf::Vector2f const& position);
 		sf::Vector2f GetPosition();
-		std::vector<IUiItem*>& Childs() override;
+		std::vector<IUiItem*>& GetChilds() override;
 		void AddChild(IUiItem* new_ui_item) override;
+		void Draw() override;
 	private:
 		sf::Vector2f _position;
 		sf::Color _bkgColor;
 		Toglable* _toglable{ nullptr };
-		IUiItem* _parent{ nullptr };
 		std::vector<IUiItem*> _childs;
 	};
 }

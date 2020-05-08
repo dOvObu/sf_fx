@@ -10,12 +10,15 @@ namespace qw
 	struct Toglable
 	{
 		Toglable();
-		Toglable(char const* name);
+		Toglable(char const* name, float x, float y);
+		Toglable(float x, float y);
 		~Toglable();
 
 		Event OnSetPosition;
 		Event OnClick;
 		Event OnDrag;
+		Event OnDraw;
+		Event OnDelete;
 
 		void SetActive(bool active);
 		void Draw();
@@ -23,7 +26,9 @@ namespace qw
 		void SetScale(float x, float y);
 		void SetOrigin(float x, float y);
 		void SetRotation(float a);
-		void SetColor(sf::Color color);
+		void SetColor(sf::Color color=sf::Color::White);
+		void SetDrawableAsSpawned(bool drawable);
+		bool IsDrawableAsSpawned();
 		sf::Vector2f GetPosition();
 		sf::Vector2f GetScale();
 		sf::Vector2f GetOrigin();
@@ -38,6 +43,8 @@ namespace qw
 		static Toglable* Spawn(sf::Vector2f p);
 		static Toglable* Spawn(Toglable* toglable);
 		static Toglable* Spawn(char const* name, sf::Vector2f p);
+		static Toglable* PushToPackage(sf::Vector2f p);
+		static void PackPackage();
 		static void Delete(Toglable* toglable);
 		static void KeepOneSelected();
 
@@ -56,7 +63,8 @@ namespace qw
 		float _originX{ 0.f }, _originY{ 0.f };
 		bool _active{ true };
 		bool _selected{ false };
-		sf::Color _color{ 0, 0, 0, 255 };
+		bool _drawable_as_spawned{ true };
+		sf::Color _color{ sf::Color::White };
 		sf::RenderStates _states;
 
 		void _Transform();
@@ -64,6 +72,7 @@ namespace qw
 
 		static sf::RenderWindow* pw;
 		static std::vector<std::shared_ptr<Toglable>> _spawned;
+		static std::vector<std::shared_ptr<Toglable>> _package;
 		static bool _select_some;
 		static std::list<Action> _actions;
 	};

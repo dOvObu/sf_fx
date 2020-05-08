@@ -2,39 +2,106 @@
 #include "../toglable.h"
 
 
-qw::UiField::UiField(sf::Vector2f position, sf::Vector2f size, sf::Color color)
-	:_position(position), _bkgColor(color), _toglable(Toglable::Spawn(_position))
+namespace qw
 {
-	_toglable->SetColor(_bkgColor);
-	auto toglable = _toglable;
-	auto& ref = *this;
-	
-	_toglable->OnDrag += [&ref, toglable]()
+	UiField::UiField(sf::Vector2f position, sf::Vector2f size, sf::Color color, std::vector<IUiItem*> const& _childs, bool drawAsSpawned)
+		:_position(position)
+		,_bkgColor(color)
+		,_toglable(drawAsSpawned ? Toglable::Spawn(_position) : Toglable::PushToPackage(_position))
+		,_childs(_childs)
 	{
-		ref.SetPosition(toglable->GetPosition());
-	};
-}
+		_toglable->SetDrawableAsSpawned(drawAsSpawned);
+		_toglable->SetColor(_bkgColor);
+		_toglable->SetScale(.5f * size.x, .5f * size.y);
+		if (drawAsSpawned)
+		{
+			Toglable::PackPackage();
+		}
+
+		auto& toglable = _toglable;
+		auto& ref = *this;
+		for (auto item : _childs)
+		{
+			item->SetParent(this);
+		}
+
+		_toglable->OnDrag += [&ref, &toglable]()
+		{
+			ref.SetPosition(toglable->GetPosition());
+		};
+
+		_toglable->OnDelete += [&toglable]()
+		{
+			toglable = nullptr;
+		};
+
+		_toglable->OnDraw += [&ref, &toglable]()
+		{
+			if (toglable->IsDrawableAsSpawned())
+			{
+				ref.Draw();
+			}
+		};
+	}
 
 
-void qw::UiField::SetPosition(sf::Vector2f const& position)
-{
-	_position = position;
-}
+	UiField::~UiField()
+	{
+		if (_toglable != nullptr)
+		{
+			delete _toglable;
+		}
+		for (auto& item : _childs)
+		{
+			delete item;
+		}
+	}
 
 
-sf::Vector2f qw::UiField::GetPosition()
-{
-	return _position;
-}
+	void UiField::SetPosition(sf::Vector2f const& position)
+	{
+		_toglable->SetPosition(position.x, position.y);
+		if (!_childs.empty())
+		{
+			sf::Vector2f buff = _position;
+			_position = position;
+
+			for (auto item : _childs)
+			{
+				item->SetPosition(item->GetPosition() + (_position - buff));
+			}
+		}
+	}
 
 
-std::vector<qw::IUiItem*>& qw::UiField::Childs()
-{
-	return _childs;
-}
+	sf::Vector2f UiField::GetPosition()
+	{
+		return _toglable->GetPosition();
+	}
 
 
-void qw::UiField::AddChild(IUiItem* new_ui_item)
-{
-	_childs.push_back(new_ui_item);
+	std::vector<IUiItem*>& UiField::GetChilds()
+	{
+		return _childs;
+	}
+
+
+	void UiField::AddChild(IUiItem* new_ui_item)
+	{
+		_childs.push_back(new_ui_item);
+	}
+
+
+	void UiField::Draw()
+	{
+		if (!_toglable->IsDrawableAsSpawned())
+		{
+			_toglable->Draw();
+		}
+
+		for (auto item : _childs)
+		{
+			item->Draw();
+		}
+	}
 }
