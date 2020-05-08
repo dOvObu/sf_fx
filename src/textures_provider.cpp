@@ -4,11 +4,16 @@
 #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
 #include <experimental/filesystem>
 
-std::map<std::string, sf::Texture> TexturesProvider::_textures;
+std::map<std::string, sf::Texture> qw::TexturesProvider::_textures;
 
 
+sf::Texture& qw::TexturesProvider::GetTexture(char const* name)
+{
+	return _textures[name];
+}
 
-void TexturesProvider::LoadTextures(char const* path)
+
+void qw::TexturesProvider::LoadTextures(char const* path)
 {
 	std::experimental::filesystem::path pth{ path };
 	

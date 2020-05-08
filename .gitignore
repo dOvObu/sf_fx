@@ -1,5 +1,7 @@
 /*.user
 /*.vcxproj
 /*.filters
+/*.swp
 /*.dll
 /x64/*
+/resources/*

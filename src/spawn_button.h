@@ -7,6 +7,7 @@ namespace qw
 	struct SpawnButton
 	{
 		SpawnButton();
+		SpawnButton(char const* name);
 		~SpawnButton();
 		void SetScale(float x, float y);
 		void SetPosition(float x, float y);
@@ -22,6 +23,7 @@ namespace qw
 		bool _active{ true };
 
 		void Transform();
+		void _Init(std::string name = "");
 		static sf::RenderWindow* pw;
 	};
 }

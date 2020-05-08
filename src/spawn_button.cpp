@@ -2,19 +2,31 @@
 #include "spawn_button.h"
 #include "sfml_extentions.h"
 
+
 sf::RenderWindow* qw::SpawnButton::pw{ nullptr };
 
+
+
 qw::SpawnButton::SpawnButton()
+{	_Init(); }
+
+
+
+qw::SpawnButton::SpawnButton(char const* name)
+{	_Init(name); }
+
+
+
+void qw::SpawnButton::_Init(std::string name)
 {
 	auto& ref = *this;
 
-	Mouse::OnMouseLeftButtonPressed[this] = [&ref]() {
+	Mouse::OnMouseLeftButtonPressed[this] = [&ref, name]() {
 		auto mp = Mouse::GetMousePosition();
 		if (ref.Contains(mp))
 		{
 			std::cout << "spawn" << std::endl;
-			auto spawned = Toglable::Spawn(mp);
-			spawned->Subscribe();
+			Toglable* spawned = (name.empty()) ? Toglable::Spawn(mp) : Toglable::Spawn(name.c_str(), mp);
 			spawned->SetScale(100.f, 100.f);
 			spawned->SelectToDrag();
 		}
@@ -22,20 +34,28 @@ qw::SpawnButton::SpawnButton()
 	std::cout << "new SpawnButton\n";
 }
 
+
+
 qw::SpawnButton::~SpawnButton()
-{
-	Mouse::OnMouseLeftButtonPressed -= this;
-}
+{	Mouse::OnMouseLeftButtonPressed -= this; }
+
+
 
 void qw::SpawnButton::SetScale(float x, float y)
 {
-	_scaleX = x, _scaleY = y;
+	_scaleX = x;
+	_scaleY = y;
 }
+
+
 
 void qw::SpawnButton::SetPosition(float x, float y)
 {
-	_positionX = x, _positionY = y;
+	_positionX = x;
+	_positionY = y;
 }
+
+
 
 void qw::SpawnButton::Draw()
 {
@@ -48,15 +68,17 @@ void qw::SpawnButton::Draw()
 	}
 }
 
+
+
 bool qw::SpawnButton::Contains(sf::Vector2f const& p)
-{
-	return is_inside(_v, 4, p);
-}
+{	return is_inside(_v, 4, p); }
+
+
 
 void qw::SpawnButton::Init(sf::RenderWindow& rw)
-{
-	pw = &rw;
-}
+{	pw = &rw; }
+
+
 
 void qw::SpawnButton::Transform()
 {
