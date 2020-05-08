@@ -17,6 +17,7 @@ namespace qw
 		Event OnSetPosition;
 		Event OnClick;
 		Event OnDrag;
+		Event OnRotate;
 		Event OnDraw;
 		Event OnDelete;
 

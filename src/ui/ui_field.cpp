@@ -1,6 +1,6 @@
 #include "ui_field.h"
+#include "../sfml_extentions.h"
 #include "../toglable.h"
-
 
 namespace qw
 {
@@ -30,9 +30,18 @@ namespace qw
 			ref.SetPosition(toglable->GetPosition());
 		};
 
-		_toglable->OnDelete += [&toglable]()
+		_toglable->OnRotate += [&ref, &toglable]()
+		{
+			ref.SetRotation(toglable->GetRotation());
+		};
+
+		_toglable->OnDelete += [&ref, &toglable]()
 		{
 			toglable = nullptr;
+			toglable->OnDrag -= (void*)&ref;
+			toglable->OnDraw -= (void*)&ref;
+			toglable->OnRotate -= (void*)&ref;
+			toglable->OnDelete -= (void*)&ref;
 		};
 
 		_toglable->OnDraw += [&ref, &toglable]()
@@ -80,6 +89,32 @@ namespace qw
 	}
 
 
+	void UiField::SetRotation(float angle)
+	{
+		_toglable->SetRotation(angle);
+		if (!_childs.empty())
+		{
+			float d = angle - _angle;
+			_angle = angle;
+			auto pos = GetPosition();
+
+			for (auto item : _childs)
+			{
+				auto v = item->GetPosition() - pos;
+				rotate(v, d);
+				item->SetRotation(item->GetRotation() + d);
+				item->SetPosition(pos + v);
+			}
+		}
+	}
+
+
+	float UiField::GetRotation()
+	{
+		return _toglable->GetRotation();
+	}
+
+
 	std::vector<IUiItem*>& UiField::GetChilds()
 	{
 		return _childs;
@@ -98,6 +133,10 @@ namespace qw
 		{
 			_toglable->Draw();
 		}
+
+																	auto v = sf::Vector2f(300.f, 0.f);
+																	sf::Vertex vx[] = { {GetPosition(),sf::Color::Red}, {GetPosition() + rotate(v, GetRotation()),sf::Color::Red} };
+																	_pw->draw(vx, 2, sf::LineStrip);
 
 		for (auto item : _childs)
 		{

@@ -10,6 +10,8 @@ namespace qw
 		UiLabel(::sf::String text, char const* font);
 		void SetPosition(::sf::Vector2f const& position) override;
 		::sf::Vector2f GetPosition() override;
+		void SetRotation(float angle) override;
+		float GetRotation() override;
 		std::vector<IUiItem*>& GetChilds() override;
 		void AddChild(IUiItem* new_ui_item) override;
 		void Draw() override;

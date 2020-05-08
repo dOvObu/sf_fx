@@ -10,6 +10,8 @@ namespace qw
 	{
 		virtual void SetPosition(sf::Vector2f const& position) = 0;
 		virtual sf::Vector2f GetPosition() = 0;
+		virtual void SetRotation(float angle) = 0;
+		virtual float GetRotation() = 0;
 		virtual std::vector<IUiItem*>& GetChilds() = 0;
 		virtual void AddChild(IUiItem* new_ui_item) = 0;
 		virtual void Draw() = 0;

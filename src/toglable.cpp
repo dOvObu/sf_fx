@@ -87,7 +87,7 @@ void qw::Toglable::Select(bool selected)
 	
 	for (auto& v : _v)
 	{
-		v.color = !selected ? _color : sf::Color::Yellow;
+		v.color = !selected ? _color : sf::Color(200,200,200);
 	}
 }
 
@@ -291,6 +291,7 @@ void qw::Toglable::_Init()
 				auto mp = Mouse::GetMousePosition();
 				mp = mp - ref.GetPosition();
 				ref.SetRotation(rotation_drag_start + atan2f(mp.y, mp.x));
+				ref.OnRotate();
 			}
 			else if (last_action == Action::SET_ANCORE && sf::Keyboard::isKeyPressed(sf::Keyboard::F))
 			{

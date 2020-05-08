@@ -28,6 +28,10 @@ namespace qw
 			{
 				new UiField({}, { 250,150 }, { 20, 70, 120 },
 					{
+						new UiField({}, { 250,150 }, { 120, 70, 120 },
+							{
+								new UiLabel(L"Тестовый тест", "JB_Mono"),
+							}),
 						new UiLabel(L"Тестовое окно", "JB_Mono"),
 					}),
 			},
