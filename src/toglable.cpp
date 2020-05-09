@@ -6,6 +6,7 @@
 sf::RenderWindow* qw::Toglable::pw{ nullptr };
 std::vector<std::shared_ptr<qw::Toglable>> qw::Toglable::_spawned;
 std::vector<std::shared_ptr<qw::Toglable>> qw::Toglable::_package;
+std::set<qw::Toglable*> qw::Toglable::_garbage;
 bool qw::Toglable::_select_some{ false };
 std::list<qw::Toglable::Action> qw::Toglable::_actions;
 
@@ -43,6 +44,14 @@ qw::Toglable::~Toglable()
 	Mouse::OnMouseLeftButtonPressed -= this;
 	Mouse::OnMouseLeftButtonReleased -= this;
 	Mouse::OnMouseLeftButtonDown -= this;
+
+	Mouse::OnMouseMiddleButtonPressed -= this;
+	Mouse::OnMouseMiddleButtonReleased -= this;
+	Mouse::OnMouseMiddleButtonDown -= this;
+
+	Mouse::OnMouseRightButtonPressed -= this;
+	Mouse::OnMouseRightButtonReleased -= this;
+	Mouse::OnMouseRightButtonDown -= this;
 }
 
 
@@ -160,6 +169,7 @@ void qw::Toglable::DrawSpawned()
 	}
 }
 
+
 qw::Toglable* qw::Toglable::Spawn(sf::Vector2f p)
 {
 	qw::Toglable* last_spawned{ nullptr };
@@ -169,12 +179,14 @@ qw::Toglable* qw::Toglable::Spawn(sf::Vector2f p)
 	return last_spawned;
 }
 
+
 qw::Toglable* qw::Toglable::Spawn(Toglable* toglable)
 {
 	_spawned.push_back(std::shared_ptr<Toglable>{ toglable });
 	PushAction(Action::SPAWNED);
 	return toglable;
 }
+
 
 qw::Toglable* qw::Toglable::Spawn(char const* name, sf::Vector2f p)
 {
@@ -185,6 +197,7 @@ qw::Toglable* qw::Toglable::Spawn(char const* name, sf::Vector2f p)
 	return last_spawned;
 }
 
+
 qw::Toglable* qw::Toglable::PushToPackage(sf::Vector2f p)
 {
 	qw::Toglable* last_spawned{ nullptr };
@@ -194,17 +207,53 @@ qw::Toglable* qw::Toglable::PushToPackage(sf::Vector2f p)
 	return last_spawned;
 }
 
+
 void qw::Toglable::PackPackage()
 {
-	_spawned.insert(std::end(_spawned), std::rbegin(_package), std::rend(_package));
-	_package.clear();
+	for (auto it = std::rbegin(_package); it != std::rend(_package); ++it)
+	{
+		_spawned.push_back(std::shared_ptr < Toglable > (*it));
+	}
+	//_spawned.insert(std::end(_spawned), std::rbegin(_package), std::rend(_package));
+	//_package.clear();
+	_package.erase(std::begin(_package));
 }
+
 
 void qw::Toglable::Delete(qw::Toglable* toglable)
 {
 	toglable->OnDelete();
 	_spawned.erase(std::remove_if(std::begin(_spawned), std::end(_spawned), [&toglable](std::shared_ptr<Toglable>& sp) { return sp.get() == toglable; }));
 }
+
+
+void qw::Toglable::CollectGarbage(qw::Toglable* toglable)
+{
+	if (toglable != nullptr)
+	{
+		toglable->OnDelete();
+		_garbage.insert(toglable);
+	}
+}
+
+
+void qw::Toglable::ClearGarbage()
+{
+	if (!_garbage.empty())
+	{
+		std::cout << "package :: " << _spawned.size() << " :: " << _package.size() << std::endl;
+		auto& garbage = _garbage;
+		auto it = std::remove_if(std::begin(_spawned), std::end(_spawned), [&garbage](std::shared_ptr<Toglable>& sp) { return garbage.count(sp.get()); });
+		//for (int i = 0; _garbage.size() > i; ++i) _spawned.pop_back();
+		_spawned.erase(it);
+		_garbage.clear();
+		//_spawned.erase(std::end(_spawned) - _garbage.size());
+		//std::cout << "garbage :: " << _garbage.size() << std::endl;
+		//_garbage.clear();
+	}
+}
+
+
 
  //===O===\\
 // private \\
@@ -301,7 +350,7 @@ void qw::Toglable::_Init()
 			}
 			else if (last_action == Action::DELETED && sf::Keyboard::isKeyPressed(sf::Keyboard::X))
 			{
-				Delete(&ref);
+				CollectGarbage(&ref);
 			}
 			else if (last_action == Action::SET_POSITION)
 			{

@@ -2,6 +2,7 @@
 #define INCLUDED_TOGLABLE_H
 #include "mouse.h"
 #include <memory>
+#include <set>
 #include <list>
 
 
@@ -14,12 +15,12 @@ namespace qw
 		Toglable(float x, float y);
 		~Toglable();
 
-		Event OnSetPosition;
-		Event OnClick;
-		Event OnDrag;
-		Event OnRotate;
-		Event OnDraw;
-		Event OnDelete;
+		Event OnSetPosition{"OnSetPosition"};
+		Event OnClick      {"OnClick      "};
+		Event OnDrag       {"OnDrag       "};
+		Event OnRotate     {"OnRotate     "};
+		Event OnDraw       {"OnDraw       "};
+		Event OnDelete     {"OnDelete     "};
 
 		void SetActive(bool active);
 		void Draw();
@@ -47,6 +48,8 @@ namespace qw
 		static Toglable* PushToPackage(sf::Vector2f p);
 		static void PackPackage();
 		static void Delete(Toglable* toglable);
+		static void CollectGarbage(Toglable* toglable);
+		static void ClearGarbage();
 		static void KeepOneSelected();
 
 		enum class Action { SPAWNED, DELETED, SET_POSITION, SET_SCALE, SET_ANCORE, SET_ANGLE };
@@ -74,6 +77,7 @@ namespace qw
 		static sf::RenderWindow* pw;
 		static std::vector<std::shared_ptr<Toglable>> _spawned;
 		static std::vector<std::shared_ptr<Toglable>> _package;
+		static std::set<Toglable*> _garbage;
 		static bool _select_some;
 		static std::list<Action> _actions;
 	};
