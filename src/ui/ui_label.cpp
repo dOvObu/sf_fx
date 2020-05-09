@@ -1,7 +1,6 @@
 #include "ui_label.h"
 #include "../fonts_provider.h"
-#include <iostream>
-#include "../sfml_extentions.h"
+#include "../extentions.h"
 
 namespace qw
 {
@@ -24,13 +23,13 @@ sf::Vector2f UiLabel::GetPosition()
 
 void UiLabel::SetRotation(float angle)
 {
-	_text.setRotation(angle);
+	_text.setRotation(angle * QW_RAD_TO_DEG);
 }
 
 
 float UiLabel::GetRotation()
 {
-	return _text.getRotation();
+	return _text.getRotation() * QW_DEG_TO_RAD;
 }
 
 
@@ -47,8 +46,5 @@ void UiLabel::AddChild(IUiItem* new_ui_item)
 void UiLabel::Draw()
 {
 	_pw->draw(_text);
-															auto v = sf::Vector2f(300, 0);
-															sf::Vertex vx[] = { {GetPosition(),sf::Color::Green}, {GetPosition() + rotate(v, GetRotation()),sf::Color::Green} };
-															_pw->draw(vx, 2, sf::LineStrip);
 }
 }
