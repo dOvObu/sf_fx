@@ -4,11 +4,11 @@
 
 namespace qw
 {
-	UiField::UiField(sf::Vector2f position, sf::Vector2f size, sf::Color color, std::vector<IUiItem*> const& _childs, bool drawAsSpawned)
+	UiField::UiField(sf::Vector2f position, sf::Vector2f size, sf::Color color, std::vector<IUiItem*> const& childs, bool drawAsSpawned)
 		:_position(position)
 		,_bkgColor(color)
 		,_toglable(drawAsSpawned ? Toglable::Spawn(_position) : Toglable::PushToPackage(_position))
-		,_childs(_childs)
+		,_childs(childs)
 	{
 		_toglable->SetDrawableAsSpawned(drawAsSpawned);
 		_toglable->SetColor(_bkgColor);
@@ -35,13 +35,16 @@ namespace qw
 			ref.SetRotation(toglable->GetRotation());
 		};
 
-		_toglable->OnDelete += [&ref, &toglable]()
+		_toglable->OnDelete += [&ref,&toglable]()
 		{
-			toglable = nullptr;
-			toglable->OnDrag -= (void*)&ref;
-			toglable->OnDraw -= (void*)&ref;
-			toglable->OnRotate -= (void*)&ref;
-			toglable->OnDelete -= (void*)&ref;
+			if (toglable != nullptr)
+			{
+				toglable->OnDrag -= &ref;
+				toglable->OnRotate -= &ref;
+				toglable->OnDraw -= &ref;
+				toglable->OnDelete -= &ref;
+				toglable = nullptr;
+			}
 		};
 
 		_toglable->OnDraw += [&ref, &toglable]()
@@ -56,28 +59,46 @@ namespace qw
 
 	UiField::~UiField()
 	{
-		if (_toglable != nullptr)
-		{
-			delete _toglable;
-		}
 		for (auto& item : _childs)
 		{
+			item->SetParent(nullptr);
+			std::cout << "rm childs" << std::endl;
 			delete item;
+		}
+
+		if (GetParent() != nullptr)
+		{
+			auto childs = GetParent()->GetChilds();
+			auto ptr = this;
+			std::cout << "parent childs :: " << childs.size() << std::endl;
+			//childs.insert(std::begin(_childs), std::end(_childs), std::end(childs));
+			std::remove_if(std::begin(childs), std::end(childs), [ptr](auto item) { return item == ptr; });
+			childs.pop_back();
+			std::cout << "parent childs inserted :: " << childs.size() << std::endl;
+			_childs.clear();
+		}
+
+		if (_toglable != nullptr)
+		{
+			Toglable::CollectGarbage(_toglable);
 		}
 	}
 
 
 	void UiField::SetPosition(sf::Vector2f const& position)
 	{
-		_toglable->SetPosition(position.x, position.y);
-		if (!_childs.empty())
+		if (_toglable != nullptr)
 		{
-			sf::Vector2f buff = _position;
-			_position = position;
-
-			for (auto item : _childs)
+			_toglable->SetPosition(position.x, position.y);
+			if (!_childs.empty())
 			{
-				item->SetPosition(item->GetPosition() + (_position - buff));
+				sf::Vector2f buff = _position;
+				_position = position;
+
+				for (auto item : _childs)
+				{
+					item->SetPosition(item->GetPosition() + (_position - buff));
+				}
 			}
 		}
 	}
@@ -85,25 +106,27 @@ namespace qw
 
 	sf::Vector2f UiField::GetPosition()
 	{
-		return _toglable->GetPosition();
+		return _toglable != nullptr ? _toglable->GetPosition() : sf::Vector2f{};
 	}
 
 
 	void UiField::SetRotation(float angle)
 	{
-		_toglable->SetRotation(angle);
-		if (!_childs.empty())
+		if (_toglable != nullptr)
 		{
-			float d = angle - _angle;
-			_angle = angle;
-			auto pos = GetPosition();
-
-			for (auto item : _childs)
+			_toglable->SetRotation(angle);
+			if (!_childs.empty())
 			{
-				auto v = item->GetPosition() - pos;
-				rotate(v, d);
-				item->SetRotation(item->GetRotation() + d);
-				item->SetPosition(pos + v);
+				float d = angle - _angle;
+				_angle = angle;
+				auto pos = GetPosition();
+
+				for (auto item : _childs)
+				{
+					auto v = item->GetPosition() - pos;
+					item->SetRotation(item->GetRotation() + d);
+					item->SetPosition(pos + rotate(v, d));
+				}
 			}
 		}
 	}
@@ -111,7 +134,7 @@ namespace qw
 
 	float UiField::GetRotation()
 	{
-		return _toglable->GetRotation();
+		return _toglable != nullptr ? _toglable->GetRotation() : 0.f;
 	}
 
 
@@ -129,14 +152,10 @@ namespace qw
 
 	void UiField::Draw()
 	{
-		if (!_toglable->IsDrawableAsSpawned())
+		if (_toglable != nullptr && !_toglable->IsDrawableAsSpawned())
 		{
 			_toglable->Draw();
 		}
-
-																	auto v = sf::Vector2f(300.f, 0.f);
-																	sf::Vertex vx[] = { {GetPosition(),sf::Color::Red}, {GetPosition() + rotate(v, GetRotation()),sf::Color::Red} };
-																	_pw->draw(vx, 2, sf::LineStrip);
 
 		for (auto item : _childs)
 		{
