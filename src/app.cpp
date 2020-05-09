@@ -41,10 +41,11 @@ namespace qw
 		while (pw->isOpen())
 		{
 			HandleEvents();
+			Toglable::ClearGarbage();
 			Handle_MouseButtonDown();
 
 			pw->clear();
-			qw::Toglable::DrawSpawned();
+			Toglable::DrawSpawned();
 			pw->display();
 		}
 	}
