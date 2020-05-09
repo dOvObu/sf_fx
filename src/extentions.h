@@ -8,6 +8,11 @@
 
 // CPP extentions
 
+// const
+#define QW_DEG_TO_RAD 0.0174532925f
+#define QW_RAD_TO_DEG 57.2957795f
+#define QW_PI 3.14159265f
+
 // str
 template<char delimiter> class __word_delimited_by : public std::string {};
 template<char ch> inline std::vector<std::string> split(std::string s) { std::istringstream iss{ s.c_str() }; return std::vector<std::string> {(std::istream_iterator<__word_delimited_by<ch>>(iss)), std::istream_iterator<__word_delimited_by<ch>>()}; }
