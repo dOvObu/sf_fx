@@ -11,12 +11,56 @@ namespace qw
 	using Func = std::function<void(void)>;
 	struct Event
 	{
-		void operator()() { for (auto& cb : m) cb.second(); for (auto& cb : v) cb(); }
-		Event& operator-=(void* key) { m.erase(key); return *this; }
-		Func& operator[](void* key) { return m[key]; }
-		Event& operator+=(Func const& f) { v.push_back(f); return *this; }
-		Event& operator+=(std::pair<void*, Func> const& pr) { m.insert(pr); return *this; }
-		std::string to_string() { return "qw::Event { m.size() -> " + std::to_string(m.size()) + ", v.size() -> " + std::to_string(v.size()) + " }"; }
+		std::string _name;
+		Event(std::string name) : _name(name) {}
+
+		void operator()()
+		{
+			std::cout << _name << std::endl;
+			std::vector<std::pair<void*, std::function<void(void)>>> vv{std::begin(m), std::end(m)};
+			for (auto& cb : vv)
+			{
+				cb.second();
+			}
+
+			for (auto& cb : v)
+			{
+				cb();
+			}
+		}
+
+
+		Event& operator-=(void* key)
+		{
+			if (m.count(key)) m.erase(key);
+			return *this;
+		}
+
+
+		Func& operator[](void* key)
+		{
+			return m[key];
+		}
+
+
+		Event& operator+=(Func const& f)
+		{
+			v.push_back(f);
+			return *this;
+		}
+		
+		
+		Event& operator+=(std::pair<void*, Func> const& pr)
+		{
+			m.insert(pr);
+			return *this;
+		}
+
+
+		std::string to_string()
+		{
+			return "qw::Event { m.size() -> " + std::to_string(m.size()) + ", v.size() -> " + std::to_string(v.size()) + " }";
+		}
 	private:
 		std::map<void*, Func> m;
 		std::vector<Func> v;
