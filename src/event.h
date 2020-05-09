@@ -16,9 +16,7 @@ namespace qw
 
 		void operator()()
 		{
-			std::cout << _name << std::endl;
-			std::vector<std::pair<void*, std::function<void(void)>>> vv{std::begin(m), std::end(m)};
-			for (auto& cb : vv)
+			for (auto& cb : m)
 			{
 				cb.second();
 			}
@@ -56,6 +54,16 @@ namespace qw
 			return *this;
 		}
 
+		size_t count(void* key)
+		{
+			return m.count(key);
+		}
+
+		void clear()
+		{
+			m.clear();
+			v.clear();
+		}
 
 		std::string to_string()
 		{

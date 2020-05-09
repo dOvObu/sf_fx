@@ -32,17 +32,20 @@ namespace qw
 							{
 								new UiLabel(L"Тестовый тест", "JB_Mono"),
 							}),
-						new UiLabel(L"Тестовое окно", "JB_Mono"),
+						new UiLabel(L"\nТестовый кек", "JB_Mono"),
 					}),
 			},
 			true);
-		Toglable::Spawn("example", { 300,300 })->SetScale(150,150);
+
+
+
+		//Toglable::Spawn("example", { 300,300 })->SetScale(150,150);
 
 		while (pw->isOpen())
 		{
 			HandleEvents();
-			Toglable::ClearGarbage();
 			Handle_MouseButtonDown();
+			Toglable::ClearGarbage();
 
 			pw->clear();
 			Toglable::DrawSpawned();

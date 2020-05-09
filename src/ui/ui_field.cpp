@@ -25,31 +25,36 @@ namespace qw
 			item->SetParent(this);
 		}
 
-		_toglable->OnDrag += [&ref, &toglable]()
+
+
+		_toglable->OnDrag[this] = [&ref, &toglable]()
 		{
 			ref.SetPosition(toglable->GetPosition());
 		};
 
-		_toglable->OnRotate += [&ref, &toglable]()
+
+		_toglable->OnRotate[this] = [&ref, &toglable]()
 		{
 			ref.SetRotation(toglable->GetRotation());
 		};
 
-		_toglable->OnDelete += [&ref,&toglable]()
+
+		_toglable->OnDelete[this] = [&ref,&toglable]()
 		{
 			if (toglable != nullptr)
 			{
-				toglable->OnDrag -= &ref;
-				toglable->OnRotate -= &ref;
-				toglable->OnDraw -= &ref;
-				toglable->OnDelete -= &ref;
+				if (!toglable->IsDrawableAsSpawned())
+				{
+					IUiItem::CollectGarbage(&ref);
+				}
 				toglable = nullptr;
 			}
 		};
 
-		_toglable->OnDraw += [&ref, &toglable]()
+
+		_toglable->OnDraw[this] = [&ref, &toglable]()
 		{
-			if (toglable->IsDrawableAsSpawned())
+			if (toglable != nullptr && toglable->IsDrawableAsSpawned())
 			{
 				ref.Draw();
 			}
@@ -59,28 +64,26 @@ namespace qw
 
 	UiField::~UiField()
 	{
-		for (auto& item : _childs)
-		{
-			item->SetParent(nullptr);
-			std::cout << "rm childs" << std::endl;
-			delete item;
-		}
 
-		if (GetParent() != nullptr)
+		_childs.clear();
+		if (_parent != nullptr)
 		{
-			auto childs = GetParent()->GetChilds();
+			auto& childs = _parent->GetChilds();
 			auto ptr = this;
-			std::cout << "parent childs :: " << childs.size() << std::endl;
 			//childs.insert(std::begin(_childs), std::end(_childs), std::end(childs));
-			std::remove_if(std::begin(childs), std::end(childs), [ptr](auto item) { return item == ptr; });
-			childs.pop_back();
-			std::cout << "parent childs inserted :: " << childs.size() << std::endl;
-			_childs.clear();
+			childs.erase(
+				std::remove_if( std::begin(childs), std::end(childs),
+					[ptr](auto item)
+					{
+						return item == ptr;
+					}));
 		}
 
 		if (_toglable != nullptr)
 		{
-			Toglable::CollectGarbage(_toglable);
+			auto toglable = _toglable;
+			_toglable = nullptr;
+			Toglable::Delete(toglable);
 		}
 	}
 

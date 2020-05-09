@@ -2,22 +2,25 @@
 #include "extentions.h"
 #include "sfml_extentions.h"
 #include "textures_provider.h"
+#include "ui/i_ui_item.h"
 
-sf::RenderWindow* qw::Toglable::pw{ nullptr };
-std::vector<std::shared_ptr<qw::Toglable>> qw::Toglable::_spawned;
-std::vector<std::shared_ptr<qw::Toglable>> qw::Toglable::_package;
-std::set<qw::Toglable*> qw::Toglable::_garbage;
-bool qw::Toglable::_select_some{ false };
-std::list<qw::Toglable::Action> qw::Toglable::_actions;
+using namespace qw;
+
+sf::RenderWindow* Toglable::pw{ nullptr };
+std::vector<std::shared_ptr<Toglable>> Toglable::_spawned;
+std::vector<std::shared_ptr<Toglable>> Toglable::_package;
+std::vector<Toglable*> Toglable::_garbage;
+bool Toglable::_select_some{ false };
+std::list<Toglable::Action> Toglable::_actions;
 
 
-qw::Toglable::Toglable()
+Toglable::Toglable()
 {
 	_Init();
 }
 
 
-qw::Toglable::Toglable(char const* name, float x = 0.f, float y = 0.f)
+Toglable::Toglable(char const* name, float x = 0.f, float y = 0.f)
 	:_positionX(x)
 	,_positionY(y)
 {
@@ -31,7 +34,7 @@ qw::Toglable::Toglable(char const* name, float x = 0.f, float y = 0.f)
 }
 
 
-qw::Toglable::Toglable(float x, float y)
+Toglable::Toglable(float x, float y)
 	:_positionX(x)
 	,_positionY(y)
 {
@@ -39,7 +42,7 @@ qw::Toglable::Toglable(float x, float y)
 }
 
 
-qw::Toglable::~Toglable()
+Toglable::~Toglable()
 {
 	Mouse::OnMouseLeftButtonPressed -= this;
 	Mouse::OnMouseLeftButtonReleased -= this;
@@ -55,13 +58,7 @@ qw::Toglable::~Toglable()
 }
 
 
-void qw::Toglable::SetActive(bool active)
-{
-	Toglable::_active = active;
-}
-
-
-void qw::Toglable::Draw()
+void Toglable::Draw()
 {
 	if (_active)
 	{
@@ -76,21 +73,77 @@ void qw::Toglable::Draw()
 }
 
 
-void qw::Toglable::SetPosition(float x, float y) { _positionX = x, _positionY = y; OnSetPosition(); }
-void qw::Toglable::SetScale(float x, float y) { _scaleX = x, _scaleY = y; }
-void qw::Toglable::SetOrigin(float x, float y) { _originX = x, _originY = y; }
-void qw::Toglable::SetRotation(float angle) { _angle = angle; }
-void qw::Toglable::SetColor(sf::Color color) { _color = color; for (auto& v : _v) v.color = color; }
-void qw::Toglable::SetDrawableAsSpawned(bool drawable) { _drawable_as_spawned = drawable; }
-bool qw::Toglable::IsDrawableAsSpawned() { return _drawable_as_spawned; }
 
-sf::Vector2f qw::Toglable::GetPosition() { return { _positionX, _positionY }; }
-sf::Vector2f qw::Toglable::GetScale() { return { _scaleX, _scaleY }; }
-sf::Vector2f qw::Toglable::GetOrigin() { return { _originX, _originY }; }
-float qw::Toglable::GetRotation() { return _angle; }
+void Toglable::SetActive(bool active)
+{
+	_active = active;
+}
+
+void Toglable::SetPosition(float x, float y)
+{
+	_positionX = x;
+	_positionY = y;
+	OnSetPosition();
+}
+
+void Toglable::SetScale(float x, float y)
+{
+	_scaleX = x;
+	_scaleY = y;
+}
+
+void Toglable::SetOrigin(float x, float y)
+{
+	_originX = x;
+	_originY = y;
+}
+
+void Toglable::SetRotation(float angle)
+{
+	_angle = angle;
+}
+
+void Toglable::SetColor(sf::Color color)
+{
+	_color = color;
+	for (auto& v : _v) v.color = color;
+}
+
+void Toglable::SetDrawableAsSpawned(bool drawable)
+{
+	_drawable_as_spawned = drawable;
+}
+
+bool Toglable::IsDrawableAsSpawned()
+{
+	return _drawable_as_spawned;
+}
 
 
-void qw::Toglable::Select(bool selected)
+
+sf::Vector2f Toglable::GetPosition()
+{
+	return { _positionX, _positionY };
+}
+
+sf::Vector2f Toglable::GetScale()
+{
+	return { _scaleX, _scaleY };
+}
+
+sf::Vector2f Toglable::GetOrigin()
+{
+	return { _originX, _originY };
+}
+
+float Toglable::GetRotation()
+{
+	return _angle;
+}
+
+
+
+void Toglable::Select(bool selected)
 {
 	_select_some = _selected = selected;
 	
@@ -101,20 +154,20 @@ void qw::Toglable::Select(bool selected)
 }
 
 
-bool qw::Toglable::Contains(sf::Vector2f const& p)
+bool Toglable::Contains(sf::Vector2f const& p)
 {
 	return is_inside(_v, 4, p);
 }
 
 
-void qw::Toglable::SelectToDrag()
+void Toglable::SelectToDrag()
 {
 	Select();
 	PushAction(Action::SET_POSITION);
 }
 
 
-void qw::Toglable::KeepOneSelected()
+void Toglable::KeepOneSelected()
 {
 	bool first{ true };
 	for (auto it = _spawned.rbegin(); it != _spawned.rend(); ++it)
@@ -134,7 +187,7 @@ void qw::Toglable::KeepOneSelected()
 }
 
 
-void qw::Toglable::PushAction(qw::Toglable::Action action)
+void Toglable::PushAction(Toglable::Action action)
 {
 	_actions.push_back(action);
 	if (_actions.size() > 10)
@@ -144,7 +197,7 @@ void qw::Toglable::PushAction(qw::Toglable::Action action)
 }
 
 
-qw::Toglable::Action qw::Toglable::PopAction()
+Toglable::Action Toglable::PopAction()
 {
 	auto action = _actions.back();
 	_actions.pop_back();
@@ -152,13 +205,13 @@ qw::Toglable::Action qw::Toglable::PopAction()
 }
 
 
-void qw::Toglable::Init(sf::RenderWindow& rw)
+void Toglable::Init(sf::RenderWindow& rw)
 {
 	pw = &rw;
 }
 
 
-void qw::Toglable::DrawSpawned()
+void Toglable::DrawSpawned()
 {
 	for (auto& it : _spawned)
 	{
@@ -170,9 +223,9 @@ void qw::Toglable::DrawSpawned()
 }
 
 
-qw::Toglable* qw::Toglable::Spawn(sf::Vector2f p)
+Toglable* Toglable::Spawn(sf::Vector2f p)
 {
-	qw::Toglable* last_spawned{ nullptr };
+	Toglable* last_spawned{ nullptr };
 	_spawned.push_back(std::shared_ptr<Toglable>{ last_spawned = new Toglable() });
 	last_spawned->SetPosition(p.x, p.y);
 	PushAction(Action::SPAWNED);
@@ -180,7 +233,7 @@ qw::Toglable* qw::Toglable::Spawn(sf::Vector2f p)
 }
 
 
-qw::Toglable* qw::Toglable::Spawn(Toglable* toglable)
+Toglable* Toglable::Spawn(Toglable* toglable)
 {
 	_spawned.push_back(std::shared_ptr<Toglable>{ toglable });
 	PushAction(Action::SPAWNED);
@@ -188,9 +241,9 @@ qw::Toglable* qw::Toglable::Spawn(Toglable* toglable)
 }
 
 
-qw::Toglable* qw::Toglable::Spawn(char const* name, sf::Vector2f p)
+Toglable* Toglable::Spawn(char const* name, sf::Vector2f p)
 {
-	qw::Toglable* last_spawned{ nullptr };
+	Toglable* last_spawned{ nullptr };
 	_spawned.push_back(std::shared_ptr<Toglable>{ last_spawned = new Toglable(name) });
 	last_spawned->SetPosition(p.x, p.y);
 	PushAction(Action::SPAWNED);
@@ -198,9 +251,9 @@ qw::Toglable* qw::Toglable::Spawn(char const* name, sf::Vector2f p)
 }
 
 
-qw::Toglable* qw::Toglable::PushToPackage(sf::Vector2f p)
+Toglable* Toglable::PushToPackage(sf::Vector2f p)
 {
-	qw::Toglable* last_spawned{ nullptr };
+	Toglable* last_spawned{ nullptr };
 	_package.push_back(std::shared_ptr<Toglable>{ last_spawned = new Toglable() });
 	last_spawned->SetPosition(p.x, p.y);
 	PushAction(Action::SPAWNED);
@@ -208,48 +261,57 @@ qw::Toglable* qw::Toglable::PushToPackage(sf::Vector2f p)
 }
 
 
-void qw::Toglable::PackPackage()
+void Toglable::PackPackage()
 {
-	for (auto it = std::rbegin(_package); it != std::rend(_package); ++it)
+	while (!_package.empty())
 	{
-		_spawned.push_back(std::shared_ptr < Toglable > (*it));
+		_spawned.push_back(_package.back());
+		_package.back().reset();
+		_package.pop_back();
+		std::cout << "_spawned.back.use_count ::: " << _spawned.back().use_count() << std::endl;
 	}
-	//_spawned.insert(std::end(_spawned), std::rbegin(_package), std::rend(_package));
-	//_package.clear();
-	_package.erase(std::begin(_package));
 }
 
 
-void qw::Toglable::Delete(qw::Toglable* toglable)
+void Toglable::Delete(Toglable* toglable)
 {
 	toglable->OnDelete();
-	_spawned.erase(std::remove_if(std::begin(_spawned), std::end(_spawned), [&toglable](std::shared_ptr<Toglable>& sp) { return sp.get() == toglable; }));
+	toglable->OnClick.clear();
+	toglable->OnDelete.clear();
+	toglable->OnDrag.clear();
+	toglable->OnDraw.clear();
+	toglable->OnRotate.clear();
+	toglable->OnSetPosition.clear();
+	_spawned.erase(std::remove_if(std::begin(_spawned), std::end(_spawned), [toglable](auto it) { return it.get() == toglable; }));
+	// ...
 }
 
 
-void qw::Toglable::CollectGarbage(qw::Toglable* toglable)
+void Toglable::CollectGarbage(Toglable* toglable)
 {
 	if (toglable != nullptr)
 	{
 		toglable->OnDelete();
-		_garbage.insert(toglable);
+		toglable->OnClick.clear();
+		toglable->OnDelete.clear();
+		toglable->OnDrag.clear();
+		toglable->OnDraw.clear();
+		toglable->OnRotate.clear();
+		toglable->OnSetPosition.clear();
+		_garbage.push_back(toglable);
 	}
 }
 
 
-void qw::Toglable::ClearGarbage()
+void Toglable::ClearGarbage()
 {
-	if (!_garbage.empty())
+	while (!_garbage.empty())
 	{
-		std::cout << "package :: " << _spawned.size() << " :: " << _package.size() << std::endl;
-		auto& garbage = _garbage;
-		auto it = std::remove_if(std::begin(_spawned), std::end(_spawned), [&garbage](std::shared_ptr<Toglable>& sp) { return garbage.count(sp.get()); });
-		//for (int i = 0; _garbage.size() > i; ++i) _spawned.pop_back();
-		_spawned.erase(it);
-		_garbage.clear();
-		//_spawned.erase(std::end(_spawned) - _garbage.size());
-		//std::cout << "garbage :: " << _garbage.size() << std::endl;
-		//_garbage.clear();
+		auto garbage = _garbage.back();
+		_garbage.pop_back();
+		Delete(garbage);
+		IUiItem::ClearGarbage();
+		//Delete(garbage);
 	}
 }
 
@@ -259,7 +321,7 @@ void qw::Toglable::ClearGarbage()
 // private \\
 \\_________//
 
-void qw::Toglable::_Init()
+void Toglable::_Init()
 {
 	Toglable& ref = *this;
 	bool& selected = _selected;
@@ -367,7 +429,7 @@ void qw::Toglable::_Init()
 }
 
 
-void qw::Toglable::_Transform()
+void Toglable::_Transform()
 {
 	for (auto& it : _v)
 	{

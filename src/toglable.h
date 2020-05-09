@@ -77,7 +77,7 @@ namespace qw
 		static sf::RenderWindow* pw;
 		static std::vector<std::shared_ptr<Toglable>> _spawned;
 		static std::vector<std::shared_ptr<Toglable>> _package;
-		static std::set<Toglable*> _garbage;
+		static std::vector<Toglable*> _garbage;
 		static bool _select_some;
 		static std::list<Action> _actions;
 	};

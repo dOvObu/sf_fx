@@ -17,10 +17,14 @@ namespace qw
 		virtual void Draw() = 0;
 		void SetParent(IUiItem* parent) { if (parent != this) { _parent = parent; if (parent != nullptr) SetPosition(_parent->GetPosition() + GetPosition()); } }
 		IUiItem* GetParent() { return _parent; }
-		static void Init(sf::RenderWindow& rw);
 		virtual ~IUiItem() {}
+
+		static void Init(sf::RenderWindow& rw);
+		static void CollectGarbage(IUiItem* item);
+		static void ClearGarbage();
 	protected:
 		static sf::RenderWindow* _pw;
+		static std::vector<IUiItem*> _garbage;
 		IUiItem* _parent{ nullptr };
 	};
 }
