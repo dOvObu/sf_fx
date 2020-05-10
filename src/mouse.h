@@ -19,7 +19,7 @@ namespace qw
 		static Event OnMouseRightButtonReleased;
 		static Event OnMouseRightButtonDown;
 
-		static sf::Vector2f const& GetMousePosition()
+		static sf::Vector2f GetMousePosition()
 		{
 			return sf::Vector2f(sf::Mouse::getPosition(*pw));
 		}
