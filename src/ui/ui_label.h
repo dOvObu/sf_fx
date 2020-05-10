@@ -22,11 +22,22 @@ namespace qw
 		std::vector<IUiItem*>& GetChilds() override;
 		IUiItem* AddChild(IUiItem* new_ui_item) override;
 
+		UiLabel* Scroll(int step); // step > 0 --> scrolling down, 0 > step --> scrolling up
+
 		void Draw() override;
 	private:
 		::sf::Text _text;
 
 		sf::String _str;
+		float _charWidth{ 0.f };
+		float _charHeight{ 0.f };
+		size_t _width{ 0 };
+		size_t _height{ 0 };
+		bool _scrollable{ true };
+		size_t _scrollPos{ 0 };
+
+		void _SetSize(size_t width, size_t height);
+		void _RecalculateCharSize();
 	};
 }
 

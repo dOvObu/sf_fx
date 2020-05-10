@@ -26,18 +26,18 @@ namespace qw
 		//button.SetScale(100.f, 50.f);
 		UiField item({ 200,200 }, { 300,200 }, { 100, 150, 200 },
 			{
-				new UiField({}, { 250,150 }, { 20, 70, 120 },
+				(new UiField({}, { 250,150 }, { 20, 70, 120 },
 					{
-						new UiLabel(L"\nТестовый кек", "JB_Mono")
+						(new UiLabel(L"\nТестовый кек", "JB_Mono"))
 					,
-						new UiField({}, { 17,17 }, { 120, 70, 120 },
+						(new UiField({}, { 17,17 }, { 120, 70, 120 },
 							{
 								(new UiLabel("Testing test test test testing test test test\nTesting test testing test testing test test test testing test...", "JB_Mono"))
-								-> SetPosition(sf::Vector2f(-8.5f,-8.5f))
+								-> Scroll(1)
 								-> SetSize({ 70.f,37.f })
-								-> SetRotation(3.1415926535858f/2.f)
-							})
-					}),
+								-> SetPosition(sf::Vector2f(-8.5f,-8.5f))
+							}))
+					}))
 			},
 			true);
 
