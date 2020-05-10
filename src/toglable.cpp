@@ -268,7 +268,6 @@ void Toglable::PackPackage()
 		_spawned.push_back(_package.back());
 		_package.back().reset();
 		_package.pop_back();
-		std::cout << "_spawned.back.use_count ::: " << _spawned.back().use_count() << std::endl;
 	}
 }
 

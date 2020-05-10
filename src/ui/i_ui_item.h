@@ -8,12 +8,14 @@ namespace qw
 {
 	struct IUiItem
 	{
-		virtual void SetPosition(sf::Vector2f const& position) = 0;
+		virtual IUiItem* SetPosition(sf::Vector2f const& position) = 0;
 		virtual sf::Vector2f GetPosition() = 0;
-		virtual void SetRotation(float angle) = 0;
+		virtual IUiItem* SetSize(sf::Vector2f const& position) = 0;
+		virtual sf::Vector2f GetSize() = 0;
+		virtual IUiItem* SetRotation(float angle) = 0;
 		virtual float GetRotation() = 0;
 		virtual std::vector<IUiItem*>& GetChilds() = 0;
-		virtual void AddChild(IUiItem* new_ui_item) = 0;
+		virtual IUiItem* AddChild(IUiItem* new_ui_item) = 0;
 		virtual void Draw() = 0;
 		void SetParent(IUiItem* parent) { if (parent != this) { _parent = parent; if (parent != nullptr) SetPosition(_parent->GetPosition() + GetPosition()); } }
 		IUiItem* GetParent() { return _parent; }

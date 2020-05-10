@@ -28,16 +28,18 @@ namespace qw
 			{
 				new UiField({}, { 250,150 }, { 20, 70, 120 },
 					{
-						new UiField({}, { 250,150 }, { 120, 70, 120 },
+						new UiLabel(L"\nТестовый кек", "JB_Mono")
+					,
+						new UiField({}, { 17,17 }, { 120, 70, 120 },
 							{
-								new UiLabel(L"Тестовый тест", "JB_Mono"),
-							}),
-						new UiLabel(L"\nТестовый кек", "JB_Mono"),
+								(new UiLabel("Testing test test test testing test test test\nTesting test testing test testing test test test testing test...", "JB_Mono"))
+								-> SetPosition(sf::Vector2f(-8.5f,-8.5f))
+								-> SetSize({ 70.f,37.f })
+								-> SetRotation(3.1415926535858f/2.f)
+							})
 					}),
 			},
 			true);
-
-
 
 		//Toglable::Spawn("example", { 300,300 })->SetScale(150,150);
 

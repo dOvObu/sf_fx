@@ -1,9 +1,9 @@
-#include "ui_field.h"
+#include "ui_button.h"
 #include "../sfml_extentions.h"
 
 namespace qw
 {
-	UiField::UiField(sf::Vector2f position, sf::Vector2f size, sf::Color color, std::vector<IUiItem*> const& childs, bool drawAsSpawned)
+	UiButton::UiButton(sf::String text, sf::Vector2f position, sf::Vector2f size, sf::Color color, std::vector<IUiItem*> const& childs, bool drawAsSpawned)
 		:_position(position)
 		,_bkgColor(color)
 		,_toglable(drawAsSpawned ? Toglable::Spawn(_position) : Toglable::PushToPackage(_position))
@@ -38,7 +38,7 @@ namespace qw
 		};
 
 
-		_toglable->OnDelete[this] = [&ref,&toglable]()
+		_toglable->OnDelete[this] = [&ref, &toglable]()
 		{
 			if (toglable != nullptr)
 			{
@@ -61,7 +61,7 @@ namespace qw
 	}
 
 
-	UiField::~UiField()
+	UiButton::~UiButton()
 	{
 		_childs.clear();
 		if (_parent != nullptr)
@@ -70,7 +70,7 @@ namespace qw
 			auto ptr = this;
 
 			childs.erase(
-				std::remove_if( std::begin(childs), std::end(childs),
+				std::remove_if(std::begin(childs), std::end(childs),
 					[ptr](auto item)
 					{
 						return item == ptr;
@@ -86,7 +86,7 @@ namespace qw
 	}
 
 
-	IUiItem* UiField::SetPosition(sf::Vector2f const& position)
+	IUiItem* UiButton::SetPosition(sf::Vector2f const& position)
 	{
 		if (_toglable != nullptr)
 		{
@@ -106,29 +106,13 @@ namespace qw
 	}
 
 
-	sf::Vector2f UiField::GetPosition()
+	sf::Vector2f UiButton::GetPosition()
 	{
 		return _toglable != nullptr ? _toglable->GetPosition() : sf::Vector2f{};
 	}
 
 
-	IUiItem* UiField::SetSize(sf::Vector2f const& size)
-	{
-		if (_toglable != nullptr)
-		{
-			_toglable->SetScale(size.x, size.y);
-		}
-		return this;
-	}
-
-
-	sf::Vector2f UiField::GetSize()
-	{
-		return _toglable != nullptr ? _toglable->GetScale() : sf::Vector2f();
-	}
-
-
-	IUiItem* UiField::SetRotation(float angle)
+	IUiItem* UiButton::SetRotation(float angle)
 	{
 		if (_toglable != nullptr)
 		{
@@ -151,26 +135,26 @@ namespace qw
 	}
 
 
-	float UiField::GetRotation()
+	float UiButton::GetRotation()
 	{
 		return _toglable != nullptr ? _toglable->GetRotation() : 0.f;
 	}
 
 
-	std::vector<IUiItem*>& UiField::GetChilds()
+	std::vector<IUiItem*>& UiButton::GetChilds()
 	{
 		return _childs;
 	}
 
 
-	IUiItem* UiField::AddChild(IUiItem* new_ui_item)
+	IUiItem* UiButton::AddChild(IUiItem * new_ui_item)
 	{
 		_childs.push_back(new_ui_item);
 		return this;
 	}
 
 
-	void UiField::Draw()
+	void UiButton::Draw()
 	{
 		if (_toglable != nullptr && !_toglable->IsDrawableAsSpawned())
 		{
