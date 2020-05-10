@@ -24,20 +24,12 @@ namespace qw
 		//qw::SpawnButton button("example");
 		//button.SetPosition(400.f, 400.f);
 		//button.SetScale(100.f, 50.f);
-		UiField item({ 200,200 }, { 300,200 }, { 100, 150, 200 },
+
+		UiField item({15,15}, { 17,17 }, { 120, 70, 120 },
 			{
-				(new UiField({}, { 250,150 }, { 20, 70, 120 },
-					{
-						(new UiLabel(L"\nТестовый кек", "JB_Mono"))
-					,
-						(new UiField({}, { 17,17 }, { 120, 70, 120 },
-							{
-								(new UiLabel("Testing test test test testing test test test\nTesting test testing test testing test test test testing test...", "JB_Mono"))
-								-> Scroll(1)
-								-> SetSize({ 70.f,37.f })
-								-> SetPosition(sf::Vector2f(-8.5f,-8.5f))
-							}))
-					}))
+				(new UiLabel("Testing test test test testing test test test\nTesting test testing test testing test test test testing test...", "JB_Mono", 20))
+				-> Scroll(0)
+				-> SetSize({ 800,5 })
 			},
 			true);
 

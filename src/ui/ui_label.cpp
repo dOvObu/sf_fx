@@ -6,10 +6,9 @@ namespace qw
 {
 UiLabel::UiLabel(sf::String text, char const* font, unsigned char_size)
 	:_str(text)
-	,_text(text,FontsProvider::GetFont(font), char_size)
+	,_text(text, FontsProvider::GetFont(font), char_size)
 {
 	_RecalculateCharSize();
-	std::cout << "_text char width :: " << _text.getCharacterSize() << ", " << (_text.findCharacterPos(1).x - _text.findCharacterPos(0).x) << "\n";
 }
 
 
@@ -28,12 +27,11 @@ sf::Vector2f UiLabel::GetPosition()
 
 IUiItem* UiLabel::SetSize(sf::Vector2f const& size)
 {
-	_RecalculateCharSize();
-	_width = size.x / _charWidth;
-	_height = size.y / _charHeight;
+	_width =  floor(size.x / _charWidth);
+	_height = floor(size.y / _charHeight);
 	if (_width == 0) _width = 1;
 	if (_height == 0) _height = 1;
-	if (_scrollPos > _height) _scrollPos = _height;
+	
 	_SetSize(_width, _height);
 	return this;
 }
@@ -83,14 +81,39 @@ void UiLabel::Draw()
 }
 
 
+bool tryClipByHeight(sf::String& tmp, size_t& height, size_t idx, size_t& scroll, bool& scrolling, bool _scrollable)
+{
+	bool needToBreak{ false };
+	--height;
+	if (scrolling)
+	{
+		if (scroll != 0)
+		{
+			--scroll;
+			if (scroll == 0)
+			{
+				scroll = idx + 1;
+				scrolling = false;
+			}
+		}
+		else scrolling = false;
+	}
+	if (height == 0)
+	{
+		tmp = _scrollable ? tmp.substring(scroll, idx - scroll) : tmp.substring(0, idx);
+		needToBreak = true;
+	}
+	return needToBreak;
+}
+
+
 void UiLabel::_SetSize(size_t width, size_t height)
 {
-	sf::String tmp{ _str };
+	sf::String tmp{ _str + '\n' };
 	bool scrolling{ _scrollable };
 	size_t scroll{ _scrollPos };
 	size_t last_space{ width };
 	height += _scrollPos;
-	//std::cout << "height " << height << std::endl;
 
 	if (width > 1)
 	{
@@ -110,23 +133,10 @@ void UiLabel::_SetSize(size_t width, size_t height)
 			{
 				++count;
 			}
-			if (tmp[idx] == '\n')
+
+			if (tmp[idx] == '\n' && tryClipByHeight(tmp, height, idx, scroll, scrolling, _scrollable))
 			{
-				--height;
-				if (scrolling)
-				{
-					--scroll;
-					if (scroll == 0)
-					{
-						scroll = idx;
-						scrolling = false;
-					}
-				}
-				if (height == 0)
-				{
-					tmp = _scrollable ? tmp.substring(scroll + 1, idx - scroll) : tmp.substring(0, idx);
-					break;
-				}
+				break;
 			}
 		}
 	}
@@ -135,25 +145,16 @@ void UiLabel::_SetSize(size_t width, size_t height)
 		for (size_t idx = 1; tmp.getSize() > idx; idx += 2)
 		{
 			tmp.insert(idx, '\n');
-			--height;
-			if (scrolling)
+			if (tryClipByHeight(tmp, height, idx, scroll, scrolling, _scrollable))
 			{
-				--scroll;
-				if (scroll == 0)
-				{
-					scroll = idx;
-					scrolling = false;
-				}
-			}
-			if (height == 0)
-			{
-				tmp = _scrollable ? tmp.substring(scroll + 1, idx - scroll) : tmp.substring(0, idx);
+				break;
 			}
 		}
 	}
 
 	_text.setString(tmp);
 }
+
 
 void UiLabel::_RecalculateCharSize()
 {
