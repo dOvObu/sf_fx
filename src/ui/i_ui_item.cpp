@@ -13,9 +13,13 @@ void qw::IUiItem::Init(sf::RenderWindow& rw)
 void qw::IUiItem::CollectGarbage(IUiItem* item)
 {
 	_garbage.push_back(item);
-	for (auto ptr : item->GetChilds())
+	auto childs = item->GetChilds();
+	if (childs != nullptr)
 	{
-		CollectGarbage(ptr);
+		for (auto ptr : *childs)
+		{
+			CollectGarbage(ptr);
+		}
 	}
 }
 

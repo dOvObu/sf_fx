@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include "ui/ui_field.h"
 #include "ui/ui_label.h"
+#include "ui/ui_button.h"
 
 namespace qw
 {
@@ -25,11 +26,13 @@ namespace qw
 		//button.SetPosition(400.f, 400.f);
 		//button.SetScale(100.f, 50.f);
 
-		UiField item({15,15}, { 17,17 }, { 120, 70, 120 },
+		UiField item({ 200,200 }, { 17,17 }, { 120, 70, 120 },
 			{
-				(new UiLabel("Testing test test test testing test test test\nTesting test testing test testing test test test testing test...", "JB_Mono", 20))
-				-> Scroll(0)
-				-> SetSize({ 800,5 })
+				(new UiButton("JB_Mono",19,"Start",sf::Color::Black,{},{150,50}))
+				-> AddCallback([]()
+				{
+					std::cout << "Start\n";
+				})
 			},
 			true);
 

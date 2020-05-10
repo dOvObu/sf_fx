@@ -56,9 +56,9 @@ float UiLabel::GetRotation()
 }
 
 
-std::vector<IUiItem*>& UiLabel::GetChilds()
+std::vector<IUiItem*>* UiLabel::GetChilds()
 {
-	return std::vector<IUiItem*>();
+	return nullptr;
 }
 
 

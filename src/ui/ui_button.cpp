@@ -1,14 +1,20 @@
 #include "ui_button.h"
+#include "../extentions.h"
+#include "../fonts_provider.h"
 #include "../sfml_extentions.h"
-
 namespace qw
 {
-	UiButton::UiButton(sf::String text, sf::Vector2f position, sf::Vector2f size, sf::Color color, std::vector<IUiItem*> const& childs, bool drawAsSpawned)
-		:_position(position)
+	UiButton::UiButton(char const* font, unsigned char_size, sf::String text, sf::Color text_color, sf::Vector2f position, sf::Vector2f size, sf::Color color, bool drawAsSpawned)
+		:_str(text)
+		,_text(text, FontsProvider::GetFont(font), char_size)
+		,_position(position)
 		,_bkgColor(color)
 		,_toglable(drawAsSpawned ? Toglable::Spawn(_position) : Toglable::PushToPackage(_position))
-		,_childs(childs)
 	{
+		_text.setFillColor(text_color);
+		auto textBounds = _text.getLocalBounds();
+		_text.setOrigin(.5f * textBounds.width, .75f * textBounds.height);
+
 		_toglable->SetDrawableAsSpawned(drawAsSpawned);
 		_toglable->SetColor(_bkgColor);
 		_toglable->SetScale(.5f * size.x, .5f * size.y);
@@ -19,22 +25,33 @@ namespace qw
 
 		auto& toglable = _toglable;
 		auto& ref = *this;
-		for (auto item : _childs)
+		auto& pos = _position;
+		auto& ang = _angle;
+
+
+		_toglable->OnDrag[this] = [&ref, &toglable, &pos]()
 		{
-			item->SetParent(this);
-		}
-
-
-
-		_toglable->OnDrag[this] = [&ref, &toglable]()
-		{
-			ref.SetPosition(toglable->GetPosition());
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Tab))
+			{
+				ref.SetPosition(toglable->GetPosition());
+			}
+			else
+			{
+				ref.SetPosition(pos);
+			}
 		};
 
 
-		_toglable->OnRotate[this] = [&ref, &toglable]()
+		_toglable->OnRotate[this] = [&ref, &toglable, &ang]()
 		{
-			ref.SetRotation(toglable->GetRotation());
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Tab))
+			{
+				ref.SetRotation(toglable->GetRotation());
+			}
+			else
+			{
+				ref.SetRotation(ang);
+			}
 		};
 
 
@@ -63,19 +80,7 @@ namespace qw
 
 	UiButton::~UiButton()
 	{
-		_childs.clear();
-		if (_parent != nullptr)
-		{
-			auto& childs = _parent->GetChilds();
-			auto ptr = this;
-
-			childs.erase(
-				std::remove_if(std::begin(childs), std::end(childs),
-					[ptr](auto item)
-					{
-						return item == ptr;
-					}));
-		}
+		_DetachFromParent();
 
 		if (_toglable != nullptr)
 		{
@@ -88,19 +93,11 @@ namespace qw
 
 	IUiItem* UiButton::SetPosition(sf::Vector2f const& position)
 	{
+		_position = position;
 		if (_toglable != nullptr)
 		{
 			_toglable->SetPosition(position.x, position.y);
-			if (!_childs.empty())
-			{
-				sf::Vector2f buff = _position;
-				_position = position;
-
-				for (auto item : _childs)
-				{
-					item->SetPosition(item->GetPosition() + (_position - buff));
-				}
-			}
+			_text.setPosition(position);
 		}
 		return this;
 	}
@@ -112,24 +109,29 @@ namespace qw
 	}
 
 
-	IUiItem* UiButton::SetRotation(float angle)
+	IUiItem* UiButton::SetSize(sf::Vector2f const& size)
 	{
 		if (_toglable != nullptr)
 		{
-			_toglable->SetRotation(angle);
-			if (!_childs.empty())
-			{
-				float d = angle - _angle;
-				_angle = angle;
-				auto pos = GetPosition();
+			_toglable->SetScale(size.x, size.y);
+		}
+		return this;
+	}
 
-				for (auto item : _childs)
-				{
-					auto v = item->GetPosition() - pos;
-					item->SetRotation(item->GetRotation() + d);
-					item->SetPosition(pos + rotate(v, d));
-				}
-			}
+
+	sf::Vector2f UiButton::GetSize()
+	{
+		return _toglable != nullptr ? _toglable->GetScale() : sf::Vector2f{};
+	}
+
+
+	IUiItem* UiButton::SetRotation(float angle)
+	{
+		_angle = angle;
+		if (_toglable != nullptr)
+		{
+			_toglable->SetRotation(angle);
+			_text.setRotation(angle * QW_RAD_TO_DEG);
 		}
 		return this;
 	}
@@ -141,29 +143,34 @@ namespace qw
 	}
 
 
-	std::vector<IUiItem*>& UiButton::GetChilds()
+	std::vector<IUiItem*>* UiButton::GetChilds()
 	{
-		return _childs;
+		return nullptr;
 	}
 
 
-	IUiItem* UiButton::AddChild(IUiItem * new_ui_item)
+	IUiItem* UiButton::AddChild(IUiItem* new_ui_item)
 	{
-		_childs.push_back(new_ui_item);
 		return this;
 	}
 
 
 	void UiButton::Draw()
 	{
-		if (_toglable != nullptr && !_toglable->IsDrawableAsSpawned())
+		if (_toglable != nullptr)
 		{
-			_toglable->Draw();
+			if (!_toglable->IsDrawableAsSpawned()) _toglable->Draw();
+			_pw->draw(_text);
 		}
+	}
 
-		for (auto item : _childs)
+
+	UiButton* UiButton::AddCallback(std::function<void(void)> cb)
+	{
+		if (_toglable != nullptr)
 		{
-			item->Draw();
+			_toglable->OnClick += cb;
 		}
+		return this;
 	}
 }

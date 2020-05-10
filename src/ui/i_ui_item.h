@@ -14,7 +14,7 @@ namespace qw
 		virtual sf::Vector2f GetSize() = 0;
 		virtual IUiItem* SetRotation(float angle) = 0;
 		virtual float GetRotation() = 0;
-		virtual std::vector<IUiItem*>& GetChilds() = 0;
+		virtual std::vector<IUiItem*>* GetChilds() = 0;
 		virtual IUiItem* AddChild(IUiItem* new_ui_item) = 0;
 		virtual void Draw() = 0;
 		void SetParent(IUiItem* parent) { if (parent != this) { _parent = parent; if (parent != nullptr) SetPosition(_parent->GetPosition() + GetPosition()); } }
@@ -28,6 +28,22 @@ namespace qw
 		static sf::RenderWindow* _pw;
 		static std::vector<IUiItem*> _garbage;
 		IUiItem* _parent{ nullptr };
+		void _DetachFromParent()
+		{
+			if (_parent != nullptr)
+			{
+				auto childs = _parent->GetChilds();
+				if (childs != nullptr)
+				{
+					auto ptr = this;
+					childs->erase(std::remove_if(std::begin(*childs), std::end(*childs),
+						[ptr](auto item)
+						{
+							return item == ptr;
+						}));
+				}
+			}
+		}
 	};
 }
 

@@ -64,18 +64,7 @@ namespace qw
 	UiField::~UiField()
 	{
 		_childs.clear();
-		if (_parent != nullptr)
-		{
-			auto& childs = _parent->GetChilds();
-			auto ptr = this;
-
-			childs.erase(
-				std::remove_if( std::begin(childs), std::end(childs),
-					[ptr](auto item)
-					{
-						return item == ptr;
-					}));
-		}
+		_DetachFromParent();
 
 		if (_toglable != nullptr)
 		{
@@ -157,9 +146,9 @@ namespace qw
 	}
 
 
-	std::vector<IUiItem*>& UiField::GetChilds()
+	std::vector<IUiItem*>* UiField::GetChilds()
 	{
-		return _childs;
+		return &_childs;
 	}
 
 

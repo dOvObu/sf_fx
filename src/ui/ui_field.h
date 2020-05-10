@@ -20,7 +20,7 @@ namespace qw
 		IUiItem* SetRotation(float angle) override;
 		float GetRotation() override;
 
-		std::vector<IUiItem*>& GetChilds() override;
+		std::vector<IUiItem*>* GetChilds() override;
 		IUiItem* AddChild(IUiItem* new_ui_item) override;
 
 		void Draw() override;
